@@ -4,7 +4,7 @@ version: '${version}'
 main: io.github.loadingerror303.endersteams.EndersTeams
 api-version: '1.21.11'
 load: POSTWORLD
-description: Survival teams with ore icons and menu-based team creation.
+description: Survival teams with block icons and menu-based team creation.
 commands:
   team:
     description: Open the team creation menu.

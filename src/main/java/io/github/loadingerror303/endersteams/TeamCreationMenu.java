@@ -28,7 +28,11 @@ import org.bukkit.inventory.MenuType;
 import org.bukkit.inventory.view.AnvilView;
 
 public final class TeamCreationMenu implements Listener, TabExecutor {
-    private static final int[] ICON_SLOTS = {10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23};
+    private static final int[] ICON_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33
+    };
     private final EndersTeams plugin;
     private final TeamStore teams;
     private final Map<UUID, Screen> screens = new HashMap<>();

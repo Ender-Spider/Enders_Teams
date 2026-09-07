@@ -6,8 +6,11 @@ A Paper 1.21.11 plugin for Java 21.
 
 Use `/team create` (or `/endersteams:team create` if another plugin claims `/team`).
 
-1. Choose an icon: coal, copper, iron, gold, redstone, lapis, emerald, diamond,
-   quartz, ancient debris, or amethyst.
+1. Choose one of 20 block icons: coal block, block of copper, block of iron,
+   block of gold, block of redstone, block of lapis lazuli, block of emerald,
+   block of diamond, block of quartz, ancient debris, block of amethyst,
+   prismarine, obsidian, crying obsidian, glowstone, deepslate, sculk,
+   gilded blackstone, sea lantern, or magma block.
 2. Type a team name in the anvil's text field and click its result. No XP or items
    are required. Names must be 3–24 characters, start with a letter or number,
    and contain only English letters, numbers, spaces, underscores, or hyphens.
