@@ -31,7 +31,7 @@ public final class TeamCreationMenu implements Listener, TabExecutor {
     private static final int[] ICON_SLOTS = {
             10, 11, 12, 13, 14, 15, 16,
             19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33
+            30, 31, 32
     };
     private final EndersTeams plugin;
     private final TeamStore teams;
@@ -86,7 +86,7 @@ public final class TeamCreationMenu implements Listener, TabExecutor {
     private void openIcons(Player player, String name) {
         Inventory inventory = Bukkit.createInventory(null, 45, Component.text("Create Team: Choose Icon"));
         fill(inventory);
-        TeamIcon[] icons = TeamIcon.values();
+        TeamIcon[] icons = TeamIcon.selectableValues();
         for (int index = 0; index < icons.length; index++) {
             TeamIcon icon = icons[index];
             inventory.setItem(ICON_SLOTS[index], item(icon.material(), icon.label(), icon.color(),
@@ -170,7 +170,7 @@ public final class TeamCreationMenu implements Listener, TabExecutor {
                 }
                 for (int index = 0; index < ICON_SLOTS.length; index++) {
                     if (ICON_SLOTS[index] == slot) {
-                        TeamIcon icon = TeamIcon.values()[index];
+                        TeamIcon icon = TeamIcon.selectableValues()[index];
                         later(player, screen, () -> openName(player, icon, screen.name));
                         break;
                     }

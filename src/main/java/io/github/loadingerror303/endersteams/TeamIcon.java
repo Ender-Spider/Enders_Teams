@@ -38,4 +38,11 @@ public enum TeamIcon {
     public String label() { return label; }
     public Material material() { return material; }
     public NamedTextColor color() { return color; }
+
+    // Keep retired enum names readable for teams saved by earlier versions.
+    public static TeamIcon[] selectableValues() {
+        return java.util.Arrays.stream(values())
+                .filter(icon -> icon != OBSIDIAN && icon != DEEPSLATE && icon != MAGMA)
+                .toArray(TeamIcon[]::new);
+    }
 }
