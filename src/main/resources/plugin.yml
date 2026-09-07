@@ -1,6 +1,6 @@
-name: base_template_1.21.11
+name: EndersTeams
 version: '${version}'
 
-main: Enders_Armor.base_template_12111.Base_template_12111
+main: io.github.loadingerror303.endersteams.EndersTeams
 api-version: '1.21.11'
 load: POSTWORLD
