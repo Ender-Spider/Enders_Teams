@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("xyz.jpenilla.run-paper") version "3.1.0"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 repositories {
