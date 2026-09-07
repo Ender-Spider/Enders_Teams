@@ -42,7 +42,7 @@ public enum TeamIcon {
     // Keep retired enum names readable for teams saved by earlier versions.
     public static TeamIcon[] selectableValues() {
         return java.util.Arrays.stream(values())
-                .filter(icon -> icon != OBSIDIAN && icon != DEEPSLATE && icon != MAGMA)
+                .filter(icon -> icon != OBSIDIAN && icon != MAGMA)
                 .toArray(TeamIcon[]::new);
     }
 }

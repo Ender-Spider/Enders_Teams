@@ -6,10 +6,11 @@ A Paper 1.21.11 plugin for Java 21.
 
 Use `/team create` (or `/endersteams:team create` if another plugin claims `/team`).
 
-1. Choose one of 17 block icons: coal block, block of copper, block of iron,
+1. Choose one of 18 block icons: coal block, block of copper, block of iron,
    block of gold, block of redstone, block of lapis lazuli, block of emerald,
    block of diamond, block of quartz, ancient debris, block of amethyst,
-   prismarine, crying obsidian, glowstone, sculk, gilded blackstone, or sea lantern.
+   prismarine, crying obsidian, glowstone, deepslate, sculk, gilded blackstone,
+   or sea lantern.
 2. Type a team name in the anvil's text field and click its result. No XP or items
    are required. Names must be 3–24 characters, start with a letter or number,
    and contain only English letters, numbers, spaces, underscores, or hyphens.
@@ -20,7 +21,7 @@ Names are unique without regard to capitalization. Players can belong to one
 team; the creator becomes its owner. Icons can be shared by multiple teams.
 Teams save immediately to `plugins/EndersTeams/teams.yml` and load after restarts.
 The `endersteams.create` permission is enabled for everyone by default.
-Previously saved teams keep retired icons (obsidian, deepslate, or magma block),
+Previously saved teams keep retired icons (obsidian or magma block),
 but these icons are no longer offered during creation.
 
 Only team creation is implemented so far. Invitations, roster, ownership
