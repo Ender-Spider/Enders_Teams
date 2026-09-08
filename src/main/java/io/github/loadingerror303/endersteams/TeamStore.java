@@ -129,6 +129,57 @@ public final class TeamStore {
         return team;
     }
 
+    /** Admin authorization is enforced by the command before entering these operations. */
+    public Team forceJoin(UUID member, UUID destinationId) throws IOException {
+        Team destination = teams.get(destinationId);
+        if (destination == null) throw new IllegalArgumentException("That team no longer exists.");
+        Team previous = teamFor(member);
+        if (previous != null && previous.id().equals(destinationId)) {
+            throw new IllegalArgumentException("That player is already on that team.");
+        }
+        if (previous != null && previous.owner().equals(member)) {
+            throw new IllegalArgumentException("Assign a replacement owner or disband the old team before moving its owner.");
+        }
+        Map<UUID, Team> updated = new LinkedHashMap<>(teams);
+        if (previous != null) {
+            Set<UUID> remaining = new java.util.HashSet<>(previous.members());
+            remaining.remove(member);
+            updated.put(previous.id(), new Team(previous.id(), previous.name(), previous.icon(),
+                    previous.owner(), remaining, previous.friendlyFire()));
+        }
+        Set<UUID> members = new java.util.HashSet<>(destination.members());
+        members.add(member);
+        Team joined = new Team(destination.id(), destination.name(), destination.icon(),
+                destination.owner(), members, destination.friendlyFire());
+        updated.put(destinationId, joined);
+        // Save both teams together; a failed write must not strand the player between teams.
+        save(updated);
+        teams.clear();
+        teams.putAll(updated);
+        return joined;
+    }
+
+    public Team forceLeave(UUID member) throws IOException {
+        Team team = teamFor(member);
+        if (team == null) throw new IllegalArgumentException("That player is not on a team.");
+        if (team.owner().equals(member)) {
+            throw new IllegalArgumentException("Assign a replacement owner or disband the team before removing its owner.");
+        }
+        return leave(member);
+    }
+
+    public Team forceOwner(UUID member) throws IOException {
+        Team team = teamFor(member);
+        if (team == null) throw new IllegalArgumentException("That player is not on a team.");
+        return transferOwnership(team.owner(), team.id(), member);
+    }
+
+    public Team forceDisband(UUID teamId) throws IOException {
+        Team team = teams.get(teamId);
+        if (team == null) throw new IllegalArgumentException("That team no longer exists.");
+        return disband(team.owner(), team.id());
+    }
+
     public boolean blocksFriendlyFire(UUID attacker, UUID victim) {
         if (attacker.equals(victim)) {
             return false;

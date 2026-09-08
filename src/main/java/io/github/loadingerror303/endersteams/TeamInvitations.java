@@ -85,6 +85,10 @@ public final class TeamInvitations {
         cooldowns.values().removeIf(until -> !until.isAfter(now));
     }
 
+    public void clearFor(UUID recipient) {
+        invitations.values().removeIf(invite -> invite.recipient().equals(recipient));
+    }
+
     private Invitation require(UUID recipient, UUID invitationId) {
         expire();
         Invitation invite = invitations.get(invitationId);
