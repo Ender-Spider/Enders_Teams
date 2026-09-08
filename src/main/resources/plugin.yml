@@ -7,8 +7,8 @@ load: POSTWORLD
 description: Survival teams with block icons and menu-based team creation.
 commands:
   team:
-    description: Create teams, invite players, and respond to invitations.
-    usage: /team <create|invite|accept|decline>
+    description: Create and manage teams, invite players, and respond to invitations.
+    usage: /team <menu|create|invite|accept|decline>
 permissions:
   endersteams.create:
     description: Create a team using the team menu.

@@ -19,14 +19,16 @@ final class TeamCommand implements TabExecutor {
     private final TeamCreationMenu creation;
     private final TeamInviteMenu menu;
     private final TeamInvitations invitations;
+    private final TeamManagementMenu management;
 
     TeamCommand(EndersTeams plugin, TeamStore teams, TeamCreationMenu creation,
-                TeamInviteMenu menu, TeamInvitations invitations) {
+                TeamInviteMenu menu, TeamInvitations invitations, TeamManagementMenu management) {
         this.plugin = plugin;
         this.teams = teams;
         this.creation = creation;
         this.menu = menu;
         this.invitations = invitations;
+        this.management = management;
     }
 
     @Override
@@ -42,6 +44,10 @@ final class TeamCommand implements TabExecutor {
         String action = args[0].toLowerCase(Locale.ROOT);
         try {
             switch (action) {
+                case "menu" -> {
+                    if (args.length == 1) management.open(player, 0);
+                    else usage(player);
+                }
                 case "create" -> {
                     if (!player.hasPermission("endersteams.create")) {
                         throw new IllegalArgumentException("You do not have permission to create a team.");
@@ -121,11 +127,11 @@ final class TeamCommand implements TabExecutor {
         if (args.length != 1) {
             return List.of();
         }
-        return List.of("create", "invite", "accept", "decline").stream()
+        return List.of("create", "invite", "accept", "decline", "menu").stream()
                 .filter(action -> action.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 
     private static void usage(Player player) {
-        player.sendMessage(Component.text("Use /team create, /team invite, /team accept or /team decline.", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("Use /team menu, /team create, /team invite, /team accept or /team decline.", NamedTextColor.YELLOW));
     }
 }
