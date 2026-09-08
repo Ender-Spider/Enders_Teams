@@ -26,7 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public final class TeamManagementMenu implements Listener {
-    private enum Action { ROSTER, MEMBER, KICK, TRANSFER, DISBAND }
+    private enum Action { ROSTER, INSPECT, MEMBER, KICK, TRANSFER, DISBAND }
 
     private static final class Screen {
         final Inventory inventory;
@@ -70,12 +70,26 @@ public final class TeamManagementMenu implements Listener {
             player.sendMessage(Component.text("Only the team owner can access the team menu.", NamedTextColor.RED));
             return;
         }
+        openRoster(player, team, requestedPage, false);
+    }
+
+    public void inspect(Player player, String teamName) {
+        if (!player.hasPermission("endersteams.admin.menu")) {
+            throw new IllegalArgumentException("You do not have permission to inspect other teams.");
+        }
+        Team team = teams.byName(teamName);
+        if (team == null) throw new IllegalArgumentException("No team named " + teamName + " was found.");
+        openRoster(player, team, 0, true);
+    }
+
+    private void openRoster(Player player, Team team, int requestedPage, boolean inspection) {
+        boolean owner = !inspection;
         List<UUID> members = team.members().stream()
                 .sorted(Comparator.<UUID, Boolean>comparing(id -> !id.equals(team.owner()))
                         .thenComparing(TeamManagementMenu::name, String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(Comparator.naturalOrder())).toList();
         InvitePage page = InvitePage.of(members, requestedPage);
-        Inventory inventory = inventory(54, "Team Menu: " + (page.index() + 1) + "/" + page.count());
+        Inventory inventory = inventory(54, (inspection ? "Team Inspection: " : "Team Menu: ") + (page.index() + 1) + "/" + page.count());
         for (int slot = 0; slot < page.players().size(); slot++) {
             UUID member = page.players().get(slot);
             inventory.setItem(slot, head(member,
@@ -94,7 +108,7 @@ public final class TeamManagementMenu implements Listener {
         inventory.setItem(50, item(Material.SUNFLOWER, "Refresh"));
         if (owner) inventory.setItem(51, item(Material.TNT, "Disband Team", "Requires confirmation"));
         if (page.hasNext()) inventory.setItem(53, item(Material.ARROW, "Next Page"));
-        show(player, new Screen(inventory, team.id(), Action.ROSTER, null, page));
+        show(player, new Screen(inventory, team.id(), inspection ? Action.INSPECT : Action.ROSTER, null, page));
     }
 
     private void member(Player player, Screen previous, UUID target) {
@@ -140,6 +154,21 @@ public final class TeamManagementMenu implements Listener {
             if (!player.isOnline() || current(player.getUniqueId(), player.getOpenInventory().getTopInventory()) != screen) return;
             screen.pending = false;
             try {
+                if (screen.action == Action.INSPECT) {
+                    Team inspected = teams.byId(screen.teamId);
+                    if (inspected == null || !player.hasPermission("endersteams.admin.menu")) {
+                        player.closeInventory();
+                        throw new IllegalArgumentException("The team is unavailable or you no longer have inspection permission.");
+                    }
+                    switch (slot) {
+                        case 45 -> { if (screen.page.hasPrevious()) openRoster(player, inspected, screen.page.index() - 1, true); }
+                        case 53 -> { if (screen.page.hasNext()) openRoster(player, inspected, screen.page.index() + 1, true); }
+                        case 50 -> openRoster(player, inspected, screen.page.index(), true);
+                        case 49 -> player.closeInventory();
+                        default -> { }
+                    }
+                    return;
+                }
                 Team team = teams.teamFor(player.getUniqueId());
                 if (team == null || !team.id().equals(screen.teamId) || !team.owner().equals(player.getUniqueId())) {
                     player.closeInventory();
@@ -221,6 +250,12 @@ public final class TeamManagementMenu implements Listener {
             if (!screen.teamId.equals(teamId)) continue;
             Player player = Bukkit.getPlayer(id);
             if (player == null) continue;
+            if (screen.action == Action.INSPECT) {
+                Team inspected = teams.byId(teamId);
+                if (inspected == null || !player.hasPermission("endersteams.admin.menu")) player.closeInventory();
+                else openRoster(player, inspected, screen.page.index(), true);
+                continue;
+            }
             Team team = teams.teamFor(id);
             if (team == null || !team.id().equals(teamId) || !team.owner().equals(id)) player.closeInventory();
             else open(player, screen.page.index());

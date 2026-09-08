@@ -60,7 +60,7 @@ final class TeamCommand implements TabExecutor {
                 }
                 case "menu" -> {
                     if (args.length == 1) management.open(player, 0);
-                    else usage(player);
+                    else management.inspect(player, String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)));
                 }
                 case "create" -> {
                     if (!player.hasPermission("endersteams.create")) {

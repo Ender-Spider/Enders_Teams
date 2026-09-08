@@ -10,6 +10,9 @@ commands:
     description: Create and manage teams, invite players, and respond to invitations.
     usage: /team <menu|create|invite|accept|decline|leave>
 permissions:
+  endersteams.admin.menu:
+    description: Inspect any team's roster and settings with /team menu <team name>.
+    default: op
   endersteams.create:
     description: Create a team using the team menu.
     default: true

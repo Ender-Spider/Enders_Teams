@@ -58,6 +58,12 @@ and friendly-fire setting. The roster supports pages of 45 members and a
 Transferring ownership closes the former owner's menu; the new owner can then
 open it with `/team menu`.
 
+Admins with `endersteams.admin.menu` (enabled for operators by default) can use
+`/team menu <team name>` to inspect any team's roster, owner, icon, and friendly-fire
+setting. Names are case-insensitive and may contain spaces, for example
+`/team menu Ender Miners`. This view supports pagination and refresh but does not
+allow kicking, transferring ownership, disbanding, inviting, or changing settings.
+
 - Click another member's head to **Kick Member** or **Transfer Ownership**.
   Both actions require confirmation and support offline members. Transferring
   ownership keeps the former owner in the team as a regular member.

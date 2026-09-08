@@ -29,6 +29,13 @@ public final class TeamStore {
                 .findFirst().orElse(null);
     }
 
+    public Team byId(UUID id) { return teams.get(id); }
+
+    public Team byName(String name) {
+        return teams.values().stream().filter(team -> team.name().equalsIgnoreCase(name.strip()))
+                .findFirst().orElse(null);
+    }
+
     public String validateName(String input) {
         String name = input == null ? "" : input.strip();
         if (!name.matches("[A-Za-z0-9][A-Za-z0-9 _-]{2,23}")) {

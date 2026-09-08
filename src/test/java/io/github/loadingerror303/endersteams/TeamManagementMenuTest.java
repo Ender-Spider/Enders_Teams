@@ -179,6 +179,45 @@ class TeamManagementMenuTest {
         assertNotNull(teams.teamFor(owner.getUniqueId()));
     }
 
+    @Test void adminCanInspectNamedTeamButCannotManageIt() {
+        Player admin = player("Admin");
+        when(admin.hasPermission("endersteams.admin.menu")).thenReturn(true);
+        command.onCommand(admin, null, "team", new String[]{"menu", "mINerS"});
+        assertNotNull(open.get(admin.getUniqueId()));
+        for (int slot : new int[]{1, 46, 47, 51, 11, 15}) click(admin, slot);
+        assertFalse(teams.teamFor(owner.getUniqueId()).friendlyFire());
+        assertEquals(2, teams.teamFor(owner.getUniqueId()).members().size());
+        assertEquals(owner.getUniqueId(), teams.teamFor(owner.getUniqueId()).owner());
+        Inventory previous = open.get(admin.getUniqueId());
+        click(admin, 50);
+        assertNotSame(previous, open.get(admin.getUniqueId()));
+        when(admin.hasPermission("endersteams.admin.menu")).thenReturn(false);
+        click(admin, 50);
+        assertNull(open.get(admin.getUniqueId()));
+    }
+
+    @Test void inspectionRequiresPermissionAndSupportsNamesWithSpaces() throws IOException {
+        command.onCommand(member, null, "team", new String[]{"menu", "Miners"});
+        assertNull(open.get(member.getUniqueId()));
+        Player otherOwner = player("OtherOwner");
+        teams.create(otherOwner.getUniqueId(), "Ender Miners", TeamIcon.COAL);
+        when(member.hasPermission("endersteams.admin.menu")).thenReturn(true);
+        command.onCommand(member, null, "team", new String[]{"menu", "Ender", "Miners"});
+        assertNotNull(open.get(member.getUniqueId()));
+        member.closeInventory();
+        command.onCommand(member, null, "team", new String[]{"menu", "Missing"});
+        assertNull(open.get(member.getUniqueId()));
+    }
+
+    @Test void disbandClosesAdminInspection() {
+        when(member.hasPermission("endersteams.admin.menu")).thenReturn(true);
+        command.onCommand(member, null, "team", new String[]{"menu", "Miners"});
+        menu.open(owner, 0);
+        click(owner, 51);
+        click(owner, 11);
+        assertTrue(open.isEmpty());
+    }
+
     private Player player(String name) {
         Player player = mock(Player.class);
         UUID id = UUID.randomUUID();
