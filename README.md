@@ -33,7 +33,10 @@ or **Close** to exit. Opening another page also refreshes the online list.
 
 Click a player's head to invite them. Your own head and players already on a
 team are shown with an unavailable status. A pending invitation cannot be sent
-again until it is declined or expires. Players who disconnect cannot be invited
+again until it is declined or expires. Each sender must also wait 60 seconds
+between invitations to the same player, even if that player declines immediately.
+The menu shows the remaining cooldown when refreshed; blocked attempts do not
+extend it. Cooldowns clear on plugin/server restart. Players who disconnect cannot be invited
 from an old menu; the clicked head always identifies the original player.
 
 The recipient receives clickable **Accept** and **Decline** chat buttons, or can

@@ -53,12 +53,44 @@ class TeamInvitationsTest {
         assertEquals(1, invites.pending(guest).size());
     }
 
-    @Test void declineDoesNotJoinAndAllowsNewInvite() {
+    @Test void declineDoesNotJoinAndAllowsNewInviteAfterCooldown() {
         var invite = invites.send(owner, guest);
         invites.decline(guest, invite.id());
         assertNull(teams.teamFor(guest));
         assertTrue(invites.pending(guest).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> invites.send(owner, guest));
+        clock.now = clock.now.plusSeconds(60);
         assertNotEquals(invite.id(), invites.send(owner, guest).id());
+    }
+
+    @Test void cooldownRoundsUpAndBlockedAttemptsDoNotExtendIt() {
+        var invite = invites.send(owner, guest);
+        invites.decline(guest, invite.id());
+        assertEquals(60, invites.cooldownSeconds(owner, guest));
+        clock.now = clock.now.plusMillis(59_500);
+        assertEquals(1, invites.cooldownSeconds(owner, guest));
+        assertThrows(IllegalArgumentException.class, () -> invites.send(owner, guest));
+        clock.now = clock.now.plusMillis(500);
+        invites.expire();
+        assertEquals(0, invites.cooldownSeconds(owner, guest));
+        assertNotNull(invites.send(owner, guest));
+    }
+
+    @Test void cooldownIsIndependentForEachSenderAndRecipient() throws IOException {
+        var invite = invites.send(owner, guest);
+        invites.decline(guest, invite.id());
+        UUID otherOwner = UUID.randomUUID();
+        teams.create(otherOwner, "Builders", TeamIcon.DIAMOND);
+        assertNotNull(invites.send(otherOwner, guest));
+        assertNotNull(invites.send(owner, UUID.randomUUID()));
+        assertThrows(IllegalArgumentException.class, () -> invites.send(owner, guest));
+    }
+
+    @Test void pendingInviteStillBlocksResendingAfterCooldownEnds() {
+        invites.send(owner, guest);
+        clock.now = clock.now.plusSeconds(60);
+        assertEquals(0, invites.cooldownSeconds(owner, guest));
+        assertThrows(IllegalArgumentException.class, () -> invites.send(owner, guest));
     }
 
     @Test void expiresAtExactlyFiveMinutes() {

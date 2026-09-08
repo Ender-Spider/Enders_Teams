@@ -98,6 +98,10 @@ public final class TeamInviteMenu implements Listener {
                 .anyMatch(invite -> invite.sender().equals(viewer.getUniqueId()))) {
             return "Invitation already sent";
         }
+        long remaining = invitations.cooldownSeconds(viewer.getUniqueId(), target.getUniqueId());
+        if (remaining > 0) {
+            return "Invite cooldown: " + remaining + " seconds (refresh to update)";
+        }
         return "Click to invite to your team";
     }
 
