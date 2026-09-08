@@ -40,6 +40,32 @@ public final class TeamStore {
         return name;
     }
 
+    public Team ownedBy(UUID owner) {
+        Team team = teamFor(owner);
+        if (team == null || !team.owner().equals(owner)) {
+            throw new IllegalArgumentException("Only a team owner can send invitations.");
+        }
+        return team;
+    }
+
+    public Team join(UUID teamId, UUID member) throws IOException {
+        Team team = teams.get(teamId);
+        if (team == null) {
+            throw new IllegalArgumentException("That team no longer exists.");
+        }
+        if (teamFor(member) != null) {
+            throw new IllegalArgumentException("You already belong to a team.");
+        }
+        Set<UUID> members = new java.util.HashSet<>(team.members());
+        members.add(member);
+        Team joined = new Team(team.id(), team.name(), team.icon(), team.owner(), members);
+        Map<UUID, Team> updated = new LinkedHashMap<>(teams);
+        updated.put(teamId, joined);
+        save(updated);
+        teams.put(teamId, joined);
+        return joined;
+    }
+
     public Team create(UUID owner, String input, TeamIcon icon) throws IOException {
         if (teamFor(owner) != null) {
             throw new IllegalArgumentException("You already belong to a team.");
