@@ -77,7 +77,11 @@ public final class TeamInvitations {
 
     public void expire() {
         Instant now = clock.instant();
-        invitations.values().removeIf(invite -> !invite.expiresAt().isAfter(now));
+        invitations.values().removeIf(invite -> {
+            Team team = teams.teamFor(invite.sender());
+            return !invite.expiresAt().isAfter(now) || team == null
+                    || !team.id().equals(invite.teamId()) || !team.owner().equals(invite.sender());
+        });
         cooldowns.values().removeIf(until -> !until.isAfter(now));
     }
 

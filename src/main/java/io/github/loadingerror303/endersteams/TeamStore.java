@@ -43,7 +43,7 @@ public final class TeamStore {
     public Team ownedBy(UUID owner) {
         Team team = teamFor(owner);
         if (team == null || !team.owner().equals(owner)) {
-            throw new IllegalArgumentException("Only a team owner can send invitations.");
+            throw new IllegalArgumentException("Only the team owner can perform this action.");
         }
         return team;
     }
@@ -58,7 +58,7 @@ public final class TeamStore {
         }
         Set<UUID> members = new java.util.HashSet<>(team.members());
         members.add(member);
-        Team joined = new Team(team.id(), team.name(), team.icon(), team.owner(), members);
+        Team joined = new Team(team.id(), team.name(), team.icon(), team.owner(), members, team.friendlyFire());
         Map<UUID, Team> updated = new LinkedHashMap<>(teams);
         updated.put(teamId, joined);
         save(updated);
@@ -74,6 +74,67 @@ public final class TeamStore {
             throw new IllegalArgumentException("Choose a team icon first.");
         }
         Team team = new Team(UUID.randomUUID(), validateName(input), icon, owner, Set.of(owner));
+        Map<UUID, Team> updated = new LinkedHashMap<>(teams);
+        updated.put(team.id(), team);
+        save(updated);
+        teams.put(team.id(), team);
+        return team;
+    }
+
+    public Team kick(UUID owner, UUID expectedTeam, UUID member) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        requireOtherMember(team, member);
+        Set<UUID> members = new java.util.HashSet<>(team.members());
+        members.remove(member);
+        return replace(new Team(team.id(), team.name(), team.icon(), owner, members, team.friendlyFire()));
+    }
+
+    public Team transferOwnership(UUID owner, UUID expectedTeam, UUID successor) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        requireOtherMember(team, successor);
+        return replace(new Team(team.id(), team.name(), team.icon(), successor, team.members(), team.friendlyFire()));
+    }
+
+    public Team setFriendlyFire(UUID owner, UUID expectedTeam, boolean enabled) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        return replace(new Team(team.id(), team.name(), team.icon(), owner, team.members(), enabled));
+    }
+
+    public Team disband(UUID owner, UUID expectedTeam) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        Map<UUID, Team> updated = new LinkedHashMap<>(teams);
+        updated.remove(team.id());
+        save(updated);
+        teams.remove(team.id());
+        return team;
+    }
+
+    public boolean blocksFriendlyFire(UUID attacker, UUID victim) {
+        if (attacker.equals(victim)) {
+            return false;
+        }
+        Team team = teamFor(attacker);
+        return team != null && !team.friendlyFire() && team.members().contains(victim);
+    }
+
+    private Team requireOwner(UUID owner, UUID expectedTeam) {
+        Team team = ownedBy(owner);
+        if (!team.id().equals(expectedTeam)) {
+            throw new IllegalArgumentException("Your team has changed. Reopen /team menu.");
+        }
+        return team;
+    }
+
+    private void requireOtherMember(Team team, UUID member) {
+        if (team.owner().equals(member)) {
+            throw new IllegalArgumentException("Choose another team member.");
+        }
+        if (!team.members().contains(member)) {
+            throw new IllegalArgumentException("That player is no longer on your team.");
+        }
+    }
+
+    private Team replace(Team team) throws IOException {
         Map<UUID, Team> updated = new LinkedHashMap<>(teams);
         updated.put(team.id(), team);
         save(updated);
@@ -98,7 +159,8 @@ public final class TeamStore {
                         .map(UUID::fromString).collect(Collectors.toSet());
                 String name = validateName(yaml.getString(path + "name"));
                 Team team = new Team(UUID.fromString(key), name,
-                        TeamIcon.valueOf(yaml.getString(path + "icon", "")), owner, members);
+                        TeamIcon.valueOf(yaml.getString(path + "icon", "")), owner, members,
+                        yaml.getBoolean(path + "friendly-fire", false));
                 if (members.stream().anyMatch(member -> teamFor(member) != null)) {
                     throw new IllegalArgumentException("A player belongs to multiple teams");
                 }
@@ -118,6 +180,7 @@ public final class TeamStore {
             yaml.set(path + "name", team.name());
             yaml.set(path + "icon", team.icon().name());
             yaml.set(path + "owner", team.owner().toString());
+            yaml.set(path + "friendly-fire", team.friendlyFire());
             yaml.set(path + "members", team.members().stream().map(UUID::toString).sorted().toList());
         }
         Path parent = file.toAbsolutePath().getParent();
