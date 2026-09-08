@@ -24,8 +24,31 @@ The `endersteams.create` permission is enabled for everyone by default.
 Previously saved teams keep retired icons (obsidian or magma block),
 but these icons are no longer offered during creation.
 
-Only team creation is implemented so far. Invitations, roster, ownership
-transfer, chat, friendly fire, and team homes are planned separately.
+## Invitations
+
+Team owners can run `/team invite` to open a double-chest menu containing the
+heads of all online players, sorted by name. Each page shows up to 45 heads.
+Use **Previous Page** and **Next Page** to browse, **Refresh** to update the list,
+or **Close** to exit. Opening another page also refreshes the online list.
+
+Click a player's head to invite them. Your own head and players already on a
+team are shown with an unavailable status. A pending invitation cannot be sent
+again until it is declined or expires. Players who disconnect cannot be invited
+from an old menu; the clicked head always identifies the original player.
+
+The recipient receives clickable **Accept** and **Decline** chat buttons, or can
+type `/team accept` or `/team decline`. If multiple invitations are pending,
+these commands show the individual team buttons so the recipient can choose.
+Buttons target a specific invitation using `/endersteams:team accept <invite-id>`
+or `/endersteams:team decline <invite-id>`.
+
+Invitations expire after five minutes and clear when the plugin/server restarts.
+Accepted memberships save immediately and survive restarts. The
+`endersteams.invite` permission defaults to true, but only the team owner can
+send invitations. Accepting and declining do not require creation permission.
+
+Invite blocking, roster, ownership transfer, team management, chat, friendly
+fire, and team homes are planned separately.
 
 ## Build and install
 
@@ -38,6 +61,10 @@ JAR if it was previously installed.
 
 `gradlew test` covers restart persistence, name validation, duplicate names,
 multiple memberships, failed writes, and protection of corrupt saved data.
+Invitation tests cover owner/recipient checks, duplicates, expiration, decline,
+accepting a specific team, retrying failed saves, and membership persistence.
+Pagination tests cover empty/full pages, 46 and 91 players, page clamping after
+disconnects, and stable head-to-player mappings. These run without Minecraft.
 
 In-game checks for Paper 1.21.11:
 
@@ -54,3 +81,10 @@ In-game checks for Paper 1.21.11:
   succeed; the other should be prompted to choose another name.
 - Restart the server and verify the team remains saved and creation is blocked
   for its owner. Test `/endersteams:team create` if another command takes priority.
+- As an owner, run `/team invite` and check player names, head textures, status
+  text, refresh, and page arrows with more than 45 online players.
+- Click a head, accept/decline using both the chat buttons and commands, and
+  check that only the intended recipient can respond. With two teams inviting
+  one player, verify that commands offer a choice and buttons target that team.
+- Check expired invites, offline targets, rapid clicks, and attempts to remove
+  heads with shift-clicks, drags, hotbar swaps, offhand swaps, and drops.
