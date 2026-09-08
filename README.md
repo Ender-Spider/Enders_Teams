@@ -50,8 +50,36 @@ Accepted memberships save immediately and survive restarts. The
 `endersteams.invite` permission defaults to true, but only the team owner can
 send invitations. Accepting and declining do not require creation permission.
 
-Invite blocking, roster, ownership transfer, team management, chat, friendly
-fire, and team homes are planned separately.
+## Team menu and management
+
+Run `/team menu` to view your team's member heads, owner, online/offline status,
+and friendly-fire setting. The roster supports pages of 45 members and a
+**Refresh** button. Any member can view it; only the current owner can manage it.
+
+- Click another member's head to **Kick Member** or **Transfer Ownership**.
+  Both actions require confirmation and support offline members. Transferring
+  ownership keeps the former owner in the team as a regular member.
+- Click **Disband Team** and confirm to remove the team and all memberships.
+- Click **Invite Players** to open the existing online-player invitation menu.
+- Click **Friendly Fire** to toggle teammate damage. The setting defaults to
+  **OFF**, including for teams saved before this setting existed.
+
+Management changes save immediately. Open management menus refresh after changes;
+removed members' menus close. Stale confirmations recheck the current owner,
+team, and target before applying changes. Disbanding or transferring ownership
+invalidates invitations sent by the previous owner.
+
+With friendly fire off, the plugin blocks teammate melee damage, projectile
+impacts, entity-caused ignition, player-attributed explosions, and damage from
+owned pets. Harmful splash/lingering potions exclude teammates; beneficial-only
+potions still work. A custom potion containing both harmful and beneficial
+effects is blocked as a whole for teammates. Environmental damage without a
+responsible player (such as placed lava) and self-damage remain unaffected.
+Turning friendly fire on allows teammate damage subject to the server's other
+PvP rules; it does not override protections from other plugins.
+
+Invite blocking, renaming, leaving, team chat, chat prefixes, and team homes are
+planned separately.
 
 ## Build and install
 
@@ -68,6 +96,11 @@ Invitation tests cover owner/recipient checks, duplicates, expiration, decline,
 accepting a specific team, retrying failed saves, and membership persistence.
 Pagination tests cover empty/full pages, 46 and 91 players, page clamping after
 disconnects, and stable head-to-player mappings. These run without Minecraft.
+Management tests cover owner permissions, persistence, transfers, disbanding,
+old-save compatibility, failed writes, and stale invitations. Simulated menu
+tests exercise `/team menu`, confirmation/cancellation, member restrictions,
+rapid clicks, drags, and closed-menu actions. Simulated damage tests cover melee,
+projectiles, ignition, TNT attribution, and enabling/disabling protection.
 
 In-game checks for Paper 1.21.11:
 
@@ -91,3 +124,8 @@ In-game checks for Paper 1.21.11:
   one player, verify that commands offer a choice and buttons target that team.
 - Check expired invites, offline targets, rapid clicks, and attempts to remove
   heads with shift-clicks, drags, hotbar swaps, offhand swaps, and drops.
+- Open `/team menu` as owner and member. Check online/offline heads, pagination,
+  kick/transfer/disband confirmations, cancel buttons, and immediate menu refresh.
+- With friendly fire off/on, check melee, flaming/tipped arrows, tridents,
+  splash/lingering harmful and beneficial potions, pets, and player-lit TNT.
+  Confirm unrelated players and ordinary environmental damage are unaffected.
