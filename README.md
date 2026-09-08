@@ -54,7 +54,9 @@ send invitations. Accepting and declining do not require creation permission.
 
 Run `/team menu` to view your team's member heads, owner, online/offline status,
 and friendly-fire setting. The roster supports pages of 45 members and a
-**Refresh** button. Any member can view it; only the current owner can manage it.
+**Refresh** button. Only the current team owner can open or use this menu.
+Transferring ownership closes the former owner's menu; the new owner can then
+open it with `/team menu`.
 
 - Click another member's head to **Kick Member** or **Transfer Ownership**.
   Both actions require confirmation and support offline members. Transferring
@@ -124,7 +126,7 @@ In-game checks for Paper 1.21.11:
   one player, verify that commands offer a choice and buttons target that team.
 - Check expired invites, offline targets, rapid clicks, and attempts to remove
   heads with shift-clicks, drags, hotbar swaps, offhand swaps, and drops.
-- Open `/team menu` as owner and member. Check online/offline heads, pagination,
+- Open `/team menu` as owner and verify members are denied access. Check online/offline heads, pagination,
   kick/transfer/disband confirmations, cancel buttons, and immediate menu refresh.
 - With friendly fire off/on, check melee, flaming/tipped arrows, tridents,
   splash/lingering harmful and beneficial potions, pets, and player-lit TNT.

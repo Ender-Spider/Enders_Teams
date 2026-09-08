@@ -81,12 +81,12 @@ class TeamManagementMenuTest {
         if (bukkit != null) bukkit.close();
     }
 
-    @Test void commandOpensMenuAndMemberCannotUseOwnerControls() {
+    @Test void commandOnlyOpensMenuForOwner() {
         command.onCommand(member, null, "team", new String[]{"menu"});
-        assertNotNull(open.get(member.getUniqueId()));
-        click(member, 47);
-        click(member, 51);
-        click(member, 0);
+        assertNull(open.get(member.getUniqueId()));
+        verify(member, never()).openInventory(any(Inventory.class));
+        command.onCommand(owner, null, "team", new String[]{"menu"});
+        assertNotNull(open.get(owner.getUniqueId()));
         assertFalse(teams.teamFor(owner.getUniqueId()).friendlyFire());
         assertEquals(2, teams.teamFor(owner.getUniqueId()).members().size());
     }
@@ -111,8 +111,21 @@ class TeamManagementMenuTest {
         assertEquals(owner.getUniqueId(), teams.teamFor(owner.getUniqueId()).owner());
         click(owner, 11);
         assertEquals(member.getUniqueId(), teams.teamFor(owner.getUniqueId()).owner());
-        click(owner, 51);
+        assertNull(open.get(owner.getUniqueId()));
+        command.onCommand(owner, null, "team", new String[]{"menu"});
+        assertNull(open.get(owner.getUniqueId()));
+        command.onCommand(member, null, "team", new String[]{"menu"});
+        assertNotNull(open.get(member.getUniqueId()));
         assertNotNull(teams.teamFor(owner.getUniqueId()));
+    }
+
+    @Test void queuedClickIsRejectedAfterOwnershipChanges() throws IOException {
+        menu.open(owner, 0);
+        menu.onClick(event(owner, 47, ClickType.LEFT));
+        teams.transferOwnership(owner.getUniqueId(), teamId, member.getUniqueId());
+        runTasks();
+        assertNull(open.get(owner.getUniqueId()));
+        assertFalse(teams.teamFor(member.getUniqueId()).friendlyFire());
     }
 
     @Test void disbandConfirmationClosesAllTeamMenus() {

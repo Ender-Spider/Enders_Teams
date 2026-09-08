@@ -65,6 +65,11 @@ public final class TeamManagementMenu implements Listener {
             return;
         }
         boolean owner = team.owner().equals(player.getUniqueId());
+        if (!owner) {
+            if (current(player.getUniqueId(), player.getOpenInventory().getTopInventory()) != null) player.closeInventory();
+            player.sendMessage(Component.text("Only the team owner can access the team menu.", NamedTextColor.RED));
+            return;
+        }
         List<UUID> members = team.members().stream()
                 .sorted(Comparator.<UUID, Boolean>comparing(id -> !id.equals(team.owner()))
                         .thenComparing(TeamManagementMenu::name, String.CASE_INSENSITIVE_ORDER)
@@ -136,7 +141,7 @@ public final class TeamManagementMenu implements Listener {
             screen.pending = false;
             try {
                 Team team = teams.teamFor(player.getUniqueId());
-                if (team == null || !team.id().equals(screen.teamId)) {
+                if (team == null || !team.id().equals(screen.teamId) || !team.owner().equals(player.getUniqueId())) {
                     player.closeInventory();
                     throw new IllegalArgumentException("Your team has changed. Reopen /team menu.");
                 }
@@ -217,7 +222,7 @@ public final class TeamManagementMenu implements Listener {
             Player player = Bukkit.getPlayer(id);
             if (player == null) continue;
             Team team = teams.teamFor(id);
-            if (team == null || !team.id().equals(teamId)) player.closeInventory();
+            if (team == null || !team.id().equals(teamId) || !team.owner().equals(id)) player.closeInventory();
             else open(player, screen.page.index());
         }
     }
