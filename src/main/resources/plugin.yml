@@ -8,8 +8,11 @@ description: Survival teams with block icons and menu-based team creation.
 commands:
   team:
     description: Create and manage teams, invite players, and respond to invitations.
-    usage: /team <menu|create|invite|accept|decline|leave>
+    usage: /team <menu|create|invite|accept|decline|leave|force>
 permissions:
+  endersteams.admin.force:
+    description: Force team joins, removals, ownership changes, and confirmed disbanding.
+    default: op
   endersteams.admin.menu:
     description: Inspect any team's roster and settings with /team menu <team name>.
     default: op

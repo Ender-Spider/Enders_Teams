@@ -20,6 +20,7 @@ final class TeamCommand implements TabExecutor {
     private final TeamInviteMenu menu;
     private final TeamInvitations invitations;
     private final TeamManagementMenu management;
+    private final AdminTeamCommand admin;
 
     TeamCommand(EndersTeams plugin, TeamStore teams, TeamCreationMenu creation,
                 TeamInviteMenu menu, TeamInvitations invitations, TeamManagementMenu management) {
@@ -29,10 +30,12 @@ final class TeamCommand implements TabExecutor {
         this.menu = menu;
         this.invitations = invitations;
         this.management = management;
+        this.admin = new AdminTeamCommand(plugin, teams, invitations, management, java.time.Clock.systemUTC());
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("force")) return admin.execute(sender, args);
         if (!(sender instanceof Player player)) {
             sender.sendMessage("Only players can use team commands.");
             return true;
@@ -138,10 +141,15 @@ final class TeamCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 2 && args[0].equalsIgnoreCase("force") && sender.hasPermission("endersteams.admin.force")) {
+            return List.of("join", "leave", "owner", "disband").stream()
+                    .filter(action -> action.startsWith(args[1].toLowerCase(Locale.ROOT))).toList();
+        }
         if (args.length != 1) {
             return List.of();
         }
-        return List.of("create", "invite", "accept", "decline", "menu", "leave").stream()
+        return List.of("create", "invite", "accept", "decline", "menu", "leave", "force").stream()
+                .filter(action -> !action.equals("force") || sender.hasPermission("endersteams.admin.force"))
                 .filter(action -> action.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 

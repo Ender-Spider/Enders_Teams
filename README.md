@@ -94,6 +94,32 @@ players may create a new team or accept a new invitation.
 Invite blocking, renaming, team chat, chat prefixes, and team homes are
 planned separately.
 
+## Admin force commands
+
+These commands require `endersteams.admin.force`, enabled for operators by
+default. They also work from the server console.
+
+- `/team force join <player> <team name>` assigns a player without an invitation,
+  moving them from their previous team when needed. Both teams save together.
+- `/team force leave <player>` removes a member from their team.
+- `/team force owner <player>` makes an existing member the owner of their
+  current team. The previous owner stays as a member.
+- `/team force disband <team name>` requests confirmation before removing a
+  team and all its memberships. Click **Confirm Disband** or use the displayed
+  `/team force confirm <token>` command within 60 seconds. **Cancel** uses
+  `/team force cancel <token>`. Only the requesting admin can respond; changes
+  to the team require a new confirmation. Pending confirmations clear on restart.
+
+Use full player names. Online players and previously joined offline players are
+supported; unknown names are rejected. Team names are case-insensitive and may
+include spaces without quotes. Moving or removing an owner is blocked until a
+replacement is assigned with `/team force owner`, or the old team is disbanded.
+
+Successful actions are logged to the server console with the admin identity,
+affected player UUID (where applicable), and team UUIDs. Online affected members
+are notified, menus refresh, and obsolete invitations are cleared. A failed
+save leaves team state unchanged and permits retrying the command.
+
 ## Build and install
 
 Run `./gradlew build` on Linux/macOS or `.\gradlew.bat build` on Windows, using
@@ -114,6 +140,9 @@ old-save compatibility, failed writes, and stale invitations. Simulated menu
 tests exercise `/team menu`, confirmation/cancellation, member restrictions,
 rapid clicks, drags, and closed-menu actions. Simulated damage tests cover melee,
 projectiles, ignition, TNT attribution, and enabling/disabling protection.
+Admin force tests cover atomic moves, owner safeguards, offline player lookup,
+permissions, console routing, audit logs, confirmation identity/expiry/cancellation,
+changed-team rejection, and failed-save retries.
 
 In-game checks for Paper 1.21.11:
 
