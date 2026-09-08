@@ -80,7 +80,12 @@ responsible player (such as placed lava) and self-damage remain unaffected.
 Turning friendly fire on allows teammate damage subject to the server's other
 PvP rules; it does not override protections from other plugins.
 
-Invite blocking, renaming, leaving, team chat, chat prefixes, and team homes are
+Members can use `/team leave` to leave immediately. The departure saves across
+restarts, notifies the owner, and refreshes their open team menu. Owners must
+transfer ownership or disband through `/team menu` before leaving. After leaving,
+players may create a new team or accept a new invitation.
+
+Invite blocking, renaming, team chat, chat prefixes, and team homes are
 planned separately.
 
 ## Build and install

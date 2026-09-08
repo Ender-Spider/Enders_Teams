@@ -44,6 +44,20 @@ final class TeamCommand implements TabExecutor {
         String action = args[0].toLowerCase(Locale.ROOT);
         try {
             switch (action) {
+                case "leave" -> {
+                    if (args.length != 1) {
+                        usage(player);
+                        break;
+                    }
+                    Team team = teams.leave(player.getUniqueId());
+                    player.closeInventory();
+                    management.refreshTeam(team.id());
+                    player.sendMessage(Component.text("You left " + team.name() + ".", NamedTextColor.YELLOW));
+                    Player owner = Bukkit.getPlayer(team.owner());
+                    if (owner != null) {
+                        owner.sendMessage(Component.text(player.getName() + " left your team.", NamedTextColor.YELLOW));
+                    }
+                }
                 case "menu" -> {
                     if (args.length == 1) management.open(player, 0);
                     else usage(player);
@@ -73,8 +87,8 @@ final class TeamCommand implements TabExecutor {
         } catch (IllegalArgumentException exception) {
             player.sendMessage(Component.text(exception.getMessage(), NamedTextColor.RED));
         } catch (IOException exception) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save accepted team invitation", exception);
-            player.sendMessage(Component.text("Could not save your membership. Please try accepting again.", NamedTextColor.RED));
+            plugin.getLogger().log(Level.SEVERE, "Could not save team membership change", exception);
+            player.sendMessage(Component.text("Could not save your membership change. Please try again.", NamedTextColor.RED));
         }
         return true;
     }
@@ -127,11 +141,11 @@ final class TeamCommand implements TabExecutor {
         if (args.length != 1) {
             return List.of();
         }
-        return List.of("create", "invite", "accept", "decline", "menu").stream()
+        return List.of("create", "invite", "accept", "decline", "menu", "leave").stream()
                 .filter(action -> action.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 
     private static void usage(Player player) {
-        player.sendMessage(Component.text("Use /team menu, /team create, /team invite, /team accept or /team decline.", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("Use /team menu, /team create, /team invite, /team accept, /team decline or /team leave.", NamedTextColor.YELLOW));
     }
 }

@@ -118,4 +118,32 @@ class TeamManagementTest {
     private TeamStore reload() throws IOException {
         return new TeamStore(directory.resolve("teams.yml"));
     }
+
+    @Test void leavingPersistsAndAllowsCreatingAnotherTeam() throws IOException {
+        teams.setFriendlyFire(owner, teamId, true);
+        teams.leave(member);
+        assertNull(reload().teamFor(member));
+        assertEquals(owner, teams.teamFor(owner).owner());
+        assertTrue(teams.teamFor(owner).friendlyFire());
+        assertNotNull(teams.create(member, "New Team", TeamIcon.AMETHYST));
+    }
+
+    @Test void ownersAndPlayersWithoutTeamsCannotLeave() throws IOException {
+        assertThrows(IllegalArgumentException.class, () -> teams.leave(owner));
+        assertThrows(IllegalArgumentException.class, () -> teams.leave(UUID.randomUUID()));
+        assertEquals(2, teams.teamFor(owner).members().size());
+        teams.transferOwnership(owner, teamId, member);
+        teams.leave(owner);
+        assertNull(teams.teamFor(owner));
+        assertEquals(member, teams.teamFor(member).owner());
+    }
+
+    @Test void failedLeaveSavePreservesMembership() throws IOException {
+        Path file = directory.resolve("teams.yml");
+        Files.delete(file);
+        Files.createDirectory(file);
+        Files.writeString(file.resolve("blocker"), "block replacement");
+        assertThrows(IOException.class, () -> teams.leave(member));
+        assertNotNull(teams.teamFor(member));
+    }
 }

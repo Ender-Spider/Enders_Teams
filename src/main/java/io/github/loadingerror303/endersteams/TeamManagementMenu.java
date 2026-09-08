@@ -215,7 +215,7 @@ public final class TeamManagementMenu implements Listener {
         return team;
     }
 
-    private void refreshTeam(UUID teamId) {
+    void refreshTeam(UUID teamId) {
         for (UUID id : List.copyOf(screens.keySet())) {
             Screen screen = screens.get(id);
             if (!screen.teamId.equals(teamId)) continue;

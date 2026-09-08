@@ -81,6 +81,19 @@ public final class TeamStore {
         return team;
     }
 
+    public Team leave(UUID member) throws IOException {
+        Team team = teamFor(member);
+        if (team == null) {
+            throw new IllegalArgumentException("You are not on a team.");
+        }
+        if (team.owner().equals(member)) {
+            throw new IllegalArgumentException("Transfer ownership or disband your team through /team menu before leaving.");
+        }
+        Set<UUID> members = new java.util.HashSet<>(team.members());
+        members.remove(member);
+        return replace(new Team(team.id(), team.name(), team.icon(), team.owner(), members, team.friendlyFire()));
+    }
+
     public Team kick(UUID owner, UUID expectedTeam, UUID member) throws IOException {
         Team team = requireOwner(owner, expectedTeam);
         requireOtherMember(team, member);

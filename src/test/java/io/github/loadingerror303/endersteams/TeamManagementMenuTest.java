@@ -167,6 +167,18 @@ class TeamManagementMenuTest {
         assertNotNull(teams.teamFor(owner.getUniqueId()));
     }
 
+    @Test void leaveCommandRemovesMemberAndRefreshesOwnerMenu() {
+        menu.open(owner, 0);
+        Inventory previous = open.get(owner.getUniqueId());
+        command.onCommand(member, null, "team", new String[]{"leave", "extra"});
+        assertNotNull(teams.teamFor(member.getUniqueId()));
+        command.onCommand(member, null, "team", new String[]{"leave"});
+        assertNull(teams.teamFor(member.getUniqueId()));
+        assertNotSame(previous, open.get(owner.getUniqueId()));
+        command.onCommand(owner, null, "team", new String[]{"leave"});
+        assertNotNull(teams.teamFor(owner.getUniqueId()));
+    }
+
     private Player player(String name) {
         Player player = mock(Player.class);
         UUID id = UUID.randomUUID();
