@@ -91,7 +91,18 @@ restarts, notifies the owner, and refreshes their open team menu. Owners must
 transfer ownership or disband through `/team menu` before leaving. After leaving,
 players may create a new team or accept a new invitation.
 
-Invite blocking, renaming, team chat, chat prefixes, and team homes are
+## Chat colors
+
+Team members' public chat uses `PlayerName: message`, with the name colored to
+match the team's selected block. For example, diamond is aqua, amethyst is light
+purple, and gold is yellow. No resource pack is needed. Message text keeps its
+existing formatting, and players without a team keep the server's normal chat
+renderer. Membership changes apply to the next message and colors survive restarts.
+For team members, this plugin supplies the chat format; another chat-formatting
+plugin may replace it if it runs afterward. This does not change tab-list names
+or names above players' heads.
+
+Invite blocking, renaming, private team chat, and team homes are
 planned separately.
 
 ## Admin force commands

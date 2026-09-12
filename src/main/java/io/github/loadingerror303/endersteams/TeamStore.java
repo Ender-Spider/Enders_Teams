@@ -18,10 +18,25 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class TeamStore {
     private final Path file;
     private final Map<UUID, Team> teams = new LinkedHashMap<>();
+    private volatile Map<UUID, net.kyori.adventure.text.format.NamedTextColor> chatColors = Map.of();
 
     public TeamStore(Path file) throws IOException {
         this.file = file;
         load();
+        publishChatColors(teams);
+    }
+
+    /** Safe to read from asynchronous chat events. Published only after successful saves. */
+    public net.kyori.adventure.text.format.NamedTextColor chatColorFor(UUID player) {
+        return chatColors.get(player);
+    }
+
+    private void publishChatColors(Map<UUID, Team> saved) {
+        Map<UUID, net.kyori.adventure.text.format.NamedTextColor> colors = new java.util.HashMap<>();
+        for (Team team : saved.values()) {
+            for (UUID member : team.members()) colors.put(member, team.icon().color());
+        }
+        chatColors = Map.copyOf(colors);
     }
 
     public Team teamFor(UUID player) {
@@ -267,5 +282,6 @@ public final class TeamStore {
         } finally {
             Files.deleteIfExists(temporary);
         }
+        publishChatColors(updated);
     }
 }

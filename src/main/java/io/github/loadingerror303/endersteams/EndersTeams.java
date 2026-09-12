@@ -28,6 +28,7 @@ public final class EndersTeams extends JavaPlugin {
         getServer().getPluginManager().registerEvents(inviteMenu, this);
         getServer().getPluginManager().registerEvents(managementMenu, this);
         getServer().getPluginManager().registerEvents(new FriendlyFireListener(teams), this);
+        getServer().getPluginManager().registerEvents(new TeamChatColors(teams), this);
         getServer().getScheduler().runTaskTimer(this, invitations::expire, 1200L, 1200L);
         var command = Objects.requireNonNull(getCommand("team"));
         TeamCommand handler = new TeamCommand(this, teams, creationMenu, inviteMenu, invitations, managementMenu);
