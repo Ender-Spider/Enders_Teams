@@ -119,8 +119,9 @@ default. They also work from the server console.
 - `/team force join <player> <team name>` assigns a player without an invitation,
   moving them from their previous team when needed. Both teams save together.
 - `/team force leave <player>` removes a member from their team.
-- `/team force owner <player>` makes an existing member the owner of their
-  current team. The previous owner stays as a member.
+- `/team force owner <player> <team name>` makes an existing member the owner of
+  the named team. The player must already belong to that team; this command
+  does not move players. The previous owner stays as a member.
 - `/team force disband <team name>` requests confirmation before removing a
   team and all its memberships. Click **Confirm Disband** or use the displayed
   `/team force confirm <token>` command within 60 seconds. **Cancel** uses

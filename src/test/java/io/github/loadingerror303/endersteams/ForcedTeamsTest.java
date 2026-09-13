@@ -42,7 +42,7 @@ class ForcedTeamsTest {
     @Test void cannotMoveOrRemoveOwnerUntilReplacementAssigned() throws IOException {
         assertThrows(IllegalArgumentException.class, () -> teams.forceJoin(first.owner(), second.id()));
         assertThrows(IllegalArgumentException.class, () -> teams.forceLeave(first.owner()));
-        teams.forceOwner(member);
+        teams.forceOwner(member, first.id());
         teams.forceJoin(first.owner(), second.id());
         assertEquals(member, teams.byId(first.id()).owner());
         assertEquals(second.id(), teams.teamFor(first.owner()).id());
@@ -51,7 +51,9 @@ class ForcedTeamsTest {
     @Test void rejectsUnknownTeamSameTeamAndUnteamedOwnership() {
         assertThrows(IllegalArgumentException.class, () -> teams.forceJoin(member, UUID.randomUUID()));
         assertThrows(IllegalArgumentException.class, () -> teams.forceJoin(member, first.id()));
-        assertThrows(IllegalArgumentException.class, () -> teams.forceOwner(UUID.randomUUID()));
+        assertThrows(IllegalArgumentException.class, () -> teams.forceOwner(UUID.randomUUID(), first.id()));
+        assertThrows(IllegalArgumentException.class, () -> teams.forceOwner(member, second.id()));
+        assertThrows(IllegalArgumentException.class, () -> teams.forceOwner(member, UUID.randomUUID()));
         assertThrows(IllegalArgumentException.class, () -> teams.forceLeave(UUID.randomUUID()));
         assertThrows(IllegalArgumentException.class, () -> teams.forceDisband(UUID.randomUUID()));
     }

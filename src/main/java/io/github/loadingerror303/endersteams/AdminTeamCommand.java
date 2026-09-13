@@ -61,11 +61,12 @@ final class AdminTeamCommand {
                     success(sender, message);
                 }
                 case "leave", "owner" -> {
-                    if (args.length != 3) { usage(sender); break; }
+                    if ((action.equals("leave") && args.length != 3)
+                            || (action.equals("owner") && args.length < 4)) { usage(sender); break; }
                     OfflinePlayer target = player(args[2]);
                     Team previous = teams.teamFor(target.getUniqueId());
                     Team updated = action.equals("leave") ? teams.forceLeave(target.getUniqueId())
-                            : teams.forceOwner(target.getUniqueId());
+                            : teams.forceOwner(target.getUniqueId(), team(args, 3).id());
                     String message = action.equals("leave")
                             ? sender.getName() + " removed " + target.getName() + " from " + updated.name() + "."
                             : sender.getName() + " made " + target.getName() + " the owner of " + updated.name() + ".";
@@ -168,6 +169,6 @@ final class AdminTeamCommand {
 
     private void usage(CommandSender sender) {
         sender.sendMessage(Component.text("Use /team force join <player> <team name>, /team force leave <player>, "
-                + "/team force owner <player>, or /team force disband <team name>.", NamedTextColor.YELLOW));
+                + "/team force owner <player> <team name>, or /team force disband <team name>.", NamedTextColor.YELLOW));
     }
 }

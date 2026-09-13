@@ -67,7 +67,7 @@ class AdminTeamCommandTest {
         when(admin.hasPermission("endersteams.admin.force")).thenReturn(false);
         execute("join", "Member", "Second", "Team");
         execute("leave", "Member");
-        execute("owner", "Member");
+        execute("owner", "Member", "First", "Team");
         execute("disband", "First", "Team");
         execute("confirm", UUID.randomUUID().toString());
         assertEquals(first.id(), teams.teamFor(member.getUniqueId()).id());
@@ -99,7 +99,7 @@ class AdminTeamCommandTest {
     @Test void rejectsOwnerRemovalThenAllowsItAfterForcedOwnershipTransfer() {
         execute("leave", "Owner");
         assertNotNull(teams.teamFor(owner.getUniqueId()));
-        execute("owner", "Member");
+        execute("owner", "Member", "First", "Team");
         execute("leave", "Owner");
         assertNull(teams.teamFor(owner.getUniqueId()));
         assertEquals(member.getUniqueId(), teams.byId(first.id()).owner());
@@ -171,6 +171,17 @@ class AdminTeamCommandTest {
         assertEquals(second.id(), teams.teamFor(guest).id());
         assertTrue(invites.pending(guest).isEmpty());
         verify(logger).info(contains("console join player="));
+    }
+
+    @Test void ownerRequiresNamedTeamAndExistingMembership() {
+        execute("owner", "Member");
+        execute("owner", "Member", "Second", "Team");
+        execute("owner", "Member", "Missing");
+        assertEquals(owner.getUniqueId(), teams.byId(first.id()).owner());
+        assertEquals(second.owner(), teams.byId(second.id()).owner());
+        verify(logger, never()).info(anyString());
+        execute("owner", "Member", "first", "team");
+        assertEquals(member.getUniqueId(), teams.byId(first.id()).owner());
     }
 
     private String requestDisband() {

@@ -201,9 +201,12 @@ public final class TeamStore {
         return leave(member);
     }
 
-    public Team forceOwner(UUID member) throws IOException {
-        Team team = teamFor(member);
-        if (team == null) throw new IllegalArgumentException("That player is not on a team.");
+    public Team forceOwner(UUID member, UUID teamId) throws IOException {
+        Team team = teams.get(teamId);
+        if (team == null) throw new IllegalArgumentException("That team no longer exists.");
+        if (!team.members().contains(member)) {
+            throw new IllegalArgumentException("That player must already belong to " + team.name() + ".");
+        }
         return transferOwnership(team.owner(), team.id(), member);
     }
 
