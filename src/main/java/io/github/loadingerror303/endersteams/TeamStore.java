@@ -52,11 +52,15 @@ public final class TeamStore {
     }
 
     public String validateName(String input) {
+        return validateName(input, null);
+    }
+
+    public String validateName(String input, UUID excludedTeam) {
         String name = input == null ? "" : input.strip();
         if (!name.matches("[A-Za-z0-9][A-Za-z0-9 _-]{2,23}")) {
             throw new IllegalArgumentException("Use 3-24 letters, numbers, spaces, _ or -; start with a letter or number.");
         }
-        if (teams.values().stream().anyMatch(team -> team.name().equalsIgnoreCase(name))) {
+        if (teams.values().stream().anyMatch(team -> !team.id().equals(excludedTeam) && team.name().equalsIgnoreCase(name))) {
             throw new IllegalArgumentException("That team name is already taken.");
         }
         return name;
@@ -133,6 +137,20 @@ public final class TeamStore {
     public Team setFriendlyFire(UUID owner, UUID expectedTeam, boolean enabled) throws IOException {
         Team team = requireOwner(owner, expectedTeam);
         return replace(new Team(team.id(), team.name(), team.icon(), owner, team.members(), enabled));
+    }
+
+    public Team rename(UUID owner, UUID expectedTeam, String name) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        return replace(new Team(team.id(), validateName(name, team.id()), team.icon(),
+                team.owner(), team.members(), team.friendlyFire()));
+    }
+
+    public Team changeIcon(UUID owner, UUID expectedTeam, TeamIcon icon) throws IOException {
+        Team team = requireOwner(owner, expectedTeam);
+        if (icon == null || !java.util.Arrays.asList(TeamIcon.selectableValues()).contains(icon)) {
+            throw new IllegalArgumentException("Choose an available block icon.");
+        }
+        return replace(new Team(team.id(), team.name(), icon, team.owner(), team.members(), team.friendlyFire()));
     }
 
     public Team disband(UUID owner, UUID expectedTeam) throws IOException {

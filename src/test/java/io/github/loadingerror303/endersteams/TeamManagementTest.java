@@ -115,6 +115,31 @@ class TeamManagementTest {
         assertThrows(IllegalArgumentException.class, () -> invites.accept(guest, current.id()));
     }
 
+    @Test void settingsPreserveMembershipAndUpdateSavedNameAndChatColor() throws IOException {
+        teams.rename(owner, teamId, "  New Miners  ");
+        teams.changeIcon(owner, teamId, TeamIcon.AMETHYST);
+        Team saved = reload().teamFor(member);
+        assertEquals("New Miners", saved.name());
+        assertEquals(TeamIcon.AMETHYST, saved.icon());
+        assertEquals(owner, saved.owner());
+        assertEquals(2, saved.members().size());
+        assertEquals(TeamIcon.AMETHYST.color(), teams.chatColorFor(member));
+        assertNull(teams.byName("Miners"));
+        teams.rename(owner, teamId, "new miners");
+        assertEquals("new miners", teams.byId(teamId).name());
+    }
+
+    @Test void settingsRejectNonownersDuplicatesInvalidNamesAndRetiredIcons() throws IOException {
+        teams.create(UUID.randomUUID(), "Other Team", TeamIcon.COAL);
+        assertThrows(IllegalArgumentException.class, () -> teams.rename(member, teamId, "New Name"));
+        assertThrows(IllegalArgumentException.class, () -> teams.changeIcon(member, teamId, TeamIcon.GOLD));
+        assertThrows(IllegalArgumentException.class, () -> teams.rename(owner, teamId, "other team"));
+        assertThrows(IllegalArgumentException.class, () -> teams.rename(owner, teamId, "!"));
+        assertThrows(IllegalArgumentException.class, () -> teams.changeIcon(owner, teamId, TeamIcon.OBSIDIAN));
+        assertThrows(IllegalArgumentException.class, () -> teams.changeIcon(owner, UUID.randomUUID(), TeamIcon.GOLD));
+        assertEquals("Miners", teams.byId(teamId).name());
+    }
+
     private TeamStore reload() throws IOException {
         return new TeamStore(directory.resolve("teams.yml"));
     }
