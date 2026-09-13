@@ -218,6 +218,34 @@ class TeamManagementMenuTest {
         assertTrue(open.isEmpty());
     }
 
+    @Test void settingsMenuChangesFriendlyFireAndIconThenReturnsToRoster() {
+        menu.open(owner, 0);
+        click(owner, 52);
+        click(owner, 11);
+        assertTrue(teams.teamFor(owner.getUniqueId()).friendlyFire());
+        click(owner, 15);
+        click(owner, 10);
+        assertEquals(TeamIcon.AMETHYST, teams.teamFor(owner.getUniqueId()).icon());
+        assertEquals(TeamIcon.AMETHYST.color(), teams.chatColorFor(member.getUniqueId()));
+        click(owner, 22);
+        assertEquals(54, open.get(owner.getUniqueId()).getSize());
+    }
+
+    @Test void settingsRejectStaleOwnerAndAdminInspectionCannotOpenSettings() throws IOException {
+        when(member.hasPermission("endersteams.admin.menu")).thenReturn(true);
+        command.onCommand(member, null, "team", new String[]{"menu", "Miners"});
+        Inventory inspection = open.get(member.getUniqueId());
+        click(member, 52);
+        assertSame(inspection, open.get(member.getUniqueId()));
+        menu.open(owner, 0);
+        click(owner, 52);
+        menu.onClick(event(owner, 11, ClickType.LEFT));
+        teams.transferOwnership(owner.getUniqueId(), teamId, member.getUniqueId());
+        runTasks();
+        assertFalse(teams.byId(teamId).friendlyFire());
+        assertNull(open.get(owner.getUniqueId()));
+    }
+
     private Player player(String name) {
         Player player = mock(Player.class);
         UUID id = UUID.randomUUID();

@@ -24,9 +24,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.MenuType;
+import org.bukkit.inventory.view.AnvilView;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 
 public final class TeamManagementMenu implements Listener {
-    private enum Action { ROSTER, INSPECT, MEMBER, KICK, TRANSFER, DISBAND }
+    private enum Action { ROSTER, INSPECT, MEMBER, KICK, TRANSFER, DISBAND, SETTINGS, ICON, NAME }
 
     private static final class Screen {
         final Inventory inventory;
@@ -107,8 +110,56 @@ public final class TeamManagementMenu implements Listener {
         inventory.setItem(49, item(Material.BARRIER, "Close"));
         inventory.setItem(50, item(Material.SUNFLOWER, "Refresh"));
         if (owner) inventory.setItem(51, item(Material.TNT, "Disband Team", "Requires confirmation"));
+        if (owner) inventory.setItem(52, item(Material.COMPARATOR, "Team Settings", "Rename, change icon, and friendly fire"));
         if (page.hasNext()) inventory.setItem(53, item(Material.ARROW, "Next Page"));
         show(player, new Screen(inventory, team.id(), inspection ? Action.INSPECT : Action.ROSTER, null, page));
+    }
+
+    private void settings(Player player, Screen previous) {
+        Team team = requireCurrentOwner(player, previous);
+        Inventory inventory = inventory(27, "Team Settings");
+        inventory.setItem(11, item(Material.LEVER, "Friendly Fire: " + (team.friendlyFire() ? "ON" : "OFF"), "Click to toggle"));
+        inventory.setItem(13, item(Material.NAME_TAG, "Rename Team", "Current name: " + team.name()));
+        inventory.setItem(15, item(team.icon().material(), "Change Block Icon", "Current icon: " + team.icon().label()));
+        inventory.setItem(22, item(Material.ARROW, "Back to Team Menu"));
+        show(player, new Screen(inventory, team.id(), Action.SETTINGS, null, previous.page));
+    }
+
+    private void icons(Player player, Screen previous) {
+        Team team = requireCurrentOwner(player, previous);
+        Inventory inventory = inventory(27, "Choose Team Block");
+        TeamIcon[] icons = TeamIcon.selectableValues();
+        for (int slot = 0; slot < icons.length; slot++) {
+            inventory.setItem(slot, item(icons[slot].material(), icons[slot].label(), "Click to save this icon"));
+        }
+        inventory.setItem(22, item(Material.ARROW, "Back to Settings"));
+        show(player, new Screen(inventory, team.id(), Action.ICON, null, previous.page));
+    }
+
+    private void rename(Player player, Screen previous) {
+        Team team = requireCurrentOwner(player, previous);
+        AnvilView view = MenuType.ANVIL.builder().title(Component.text("Rename Team"))
+                .checkReachable(false).build(player);
+        player.closeInventory();
+        screens.put(player.getUniqueId(), new Screen(view.getTopInventory(), team.id(), Action.NAME, null, previous.page));
+        view.open();
+        view.getTopInventory().setItem(0, item(Material.PAPER, team.name(), "Enter a name, then click the result to save"));
+        view.setRepairCost(0);
+        view.setRepairItemCountCost(0);
+    }
+
+    @EventHandler
+    public void onPrepareRename(PrepareAnvilEvent event) {
+        Screen screen = current(event.getView().getPlayer().getUniqueId(), event.getInventory());
+        if (screen == null || screen.action != Action.NAME) return;
+        event.getView().setRepairCost(0);
+        event.getView().setRepairItemCountCost(0);
+        try {
+            String name = teams.validateName(event.getView().getRenameText(), screen.teamId);
+            event.setResult(item(Material.NAME_TAG, name, "Click to save team name"));
+        } catch (IllegalArgumentException exception) {
+            event.setResult(item(Material.BARRIER, "Invalid Name", exception.getMessage()));
+        }
     }
 
     private void member(Player player, Screen previous, UUID target) {
@@ -149,6 +200,8 @@ public final class TeamManagementMenu implements Listener {
         if (screen.pending || (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT)) return;
         int slot = event.getRawSlot();
         if (slot < 0 || slot >= screen.inventory.getSize()) return;
+        String renameText = screen.action == Action.NAME && event.getView() instanceof AnvilView anvil
+                ? anvil.getRenameText() : null;
         screen.pending = true;
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!player.isOnline() || current(player.getUniqueId(), player.getOpenInventory().getTopInventory()) != screen) return;
@@ -174,7 +227,14 @@ public final class TeamManagementMenu implements Listener {
                     player.closeInventory();
                     throw new IllegalArgumentException("Your team has changed. Reopen /team menu.");
                 }
-                click(player, screen, slot);
+                if (screen.action == Action.NAME) {
+                    if (slot == 2) {
+                        Team renamed = teams.rename(player.getUniqueId(), screen.teamId, renameText);
+                        announce(renamed, "Team renamed to " + renamed.name() + ".");
+                        refreshTeam(screen.teamId);
+                        settings(player, screen);
+                    }
+                } else click(player, screen, slot);
             } catch (IllegalArgumentException exception) {
                 player.sendMessage(Component.text(exception.getMessage(), NamedTextColor.RED));
             } catch (IOException exception) {
@@ -185,6 +245,31 @@ public final class TeamManagementMenu implements Listener {
     }
 
     private void click(Player player, Screen screen, int slot) throws IOException {
+        if (screen.action == Action.SETTINGS) {
+            switch (slot) {
+                case 11 -> {
+                    Team team = requireCurrentOwner(player, screen);
+                    Team updated = teams.setFriendlyFire(player.getUniqueId(), screen.teamId, !team.friendlyFire());
+                    announce(updated, "Friendly fire is now " + (updated.friendlyFire() ? "ON" : "OFF") + ".");
+                    refreshTeam(screen.teamId);
+                    settings(player, screen);
+                }
+                case 13 -> rename(player, screen);
+                case 15 -> icons(player, screen);
+                case 22 -> open(player, screen.page.index());
+                default -> { }
+            }
+            return;
+        }
+        if (screen.action == Action.ICON) {
+            if (slot < TeamIcon.selectableValues().length) {
+                Team updated = teams.changeIcon(player.getUniqueId(), screen.teamId, TeamIcon.selectableValues()[slot]);
+                announce(updated, "Team icon changed to " + updated.icon().label() + ".");
+                refreshTeam(screen.teamId);
+                settings(player, screen);
+            } else if (slot == 22) settings(player, screen);
+            return;
+        }
         if (screen.action == Action.ROSTER) {
             if (slot < screen.page.players().size()) {
                 member(player, screen, screen.page.players().get(slot));
@@ -201,6 +286,7 @@ public final class TeamManagementMenu implements Listener {
                     case 49 -> player.closeInventory();
                     case 50 -> open(player, screen.page.index());
                     case 51 -> confirm(player, screen, Action.DISBAND);
+                    case 52 -> settings(player, screen);
                     case 53 -> { if (screen.page.hasNext()) open(player, screen.page.index() + 1); }
                     default -> { }
                 }
@@ -275,14 +361,23 @@ public final class TeamManagementMenu implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (current(event.getPlayer().getUniqueId(), event.getInventory()) != null) screens.remove(event.getPlayer().getUniqueId());
+        Screen screen = current(event.getPlayer().getUniqueId(), event.getInventory());
+        if (screen != null) {
+            screens.remove(event.getPlayer().getUniqueId());
+            if (screen.action == Action.NAME) screen.inventory.clear();
+        }
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent event) { screens.remove(event.getPlayer().getUniqueId()); }
+    public void onQuit(PlayerQuitEvent event) {
+        Screen screen = screens.remove(event.getPlayer().getUniqueId());
+        if (screen != null && screen.action == Action.NAME) screen.inventory.clear();
+    }
 
     public void closeAll() {
         for (UUID id : List.copyOf(screens.keySet())) {
+            Screen screen = screens.get(id);
+            if (screen.action == Action.NAME) screen.inventory.clear();
             Player player = Bukkit.getPlayer(id);
             if (player != null && current(id, player.getOpenInventory().getTopInventory()) != null) player.closeInventory();
         }

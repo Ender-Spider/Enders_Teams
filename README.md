@@ -69,6 +69,12 @@ allow kicking, transferring ownership, disbanding, inviting, or changing setting
   ownership keeps the former owner in the team as a regular member.
 - Click **Disband Team** and confirm to remove the team and all memberships.
 - Click **Invite Players** to open the existing online-player invitation menu.
+- Click **Team Settings** to toggle friendly fire, **Rename Team** using an
+  anvil, or **Change Block Icon** using the 18-block picker. Click the anvil
+  result to save a name or a block to save the icon. Closing the rename screen
+  cancels without saving. Names use the same validation as creation and must
+  remain unique; changing only capitalization is allowed. Icon changes update
+  every member's public chat color. Use **Back** to return to settings or the roster.
 - Click **Friendly Fire** to toggle teammate damage. The setting defaults to
   **OFF**, including for teams saved before this setting existed.
 
@@ -102,7 +108,7 @@ For team members, this plugin supplies the chat format; another chat-formatting
 plugin may replace it if it runs afterward. This does not change tab-list names
 or names above players' heads.
 
-Invite blocking, renaming, private team chat, and team homes are
+Invite blocking, private team chat, and team homes are
 planned separately.
 
 ## Admin force commands

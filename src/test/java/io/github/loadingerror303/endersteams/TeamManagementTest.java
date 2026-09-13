@@ -99,6 +99,9 @@ class TeamManagementTest {
         assertThrows(IOException.class, () -> teams.transferOwnership(owner, teamId, member));
         assertThrows(IOException.class, () -> teams.setFriendlyFire(owner, teamId, true));
         assertThrows(IOException.class, () -> teams.disband(owner, teamId));
+        assertThrows(IOException.class, () -> teams.rename(owner, teamId, "New Name"));
+        assertThrows(IOException.class, () -> teams.changeIcon(owner, teamId, TeamIcon.AMETHYST));
+        assertEquals(before.icon().color(), teams.chatColorFor(member));
         assertEquals(before, teams.teamFor(owner));
         assertEquals(before, teams.teamFor(member));
     }
