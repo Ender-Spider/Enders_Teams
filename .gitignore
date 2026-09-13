@@ -7,6 +7,9 @@
 # Gradle build folder
 build
 
+# Java IDE compiler output
+/bin/
+
 # IntelliJ
 out/
 .idea
